@@ -1,4 +1,5 @@
-import {OpenAPIV3} from 'openapi-types';
+// eslint-disable-next-line node/no-unpublished-import
+import type {OpenAPIV3} from 'openapi-types';
 
 export const openAPIMock: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -168,6 +169,54 @@ export const openAPIMock: OpenAPIV3.Document = {
             },
           },
         ],
+      },
+    },
+    '/body-test': {
+      post: {
+        operationId: 'bodyTest',
+        requestBody: {
+          content: {
+            something: {
+              schema: {
+                type: 'object',
+                properties: {
+                  something: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/body-oneof-test': {
+      post: {
+        operationId: 'bodyOneOfTest',
+        requestBody: {
+          content: {
+            something: {
+              schema: {
+                type: 'object',
+                properties: {
+                  something: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+            something2: {
+              schema: {
+                type: 'object',
+                properties: {
+                  something2: {
+                    type: 'number',
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   },

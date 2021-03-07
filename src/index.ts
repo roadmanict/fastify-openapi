@@ -1,8 +1,7 @@
-import {OpenAPIV3} from 'openapi-types';
+// eslint-disable-next-line node/no-unpublished-import
+import type {OpenAPIV3} from 'openapi-types';
 import {FastifyInstance} from 'fastify';
 import {RouteHandlerMethod} from 'fastify/types/route';
-import ParameterObject = OpenAPIV3.ParameterObject;
-import RequestBodyObject = OpenAPIV3.RequestBodyObject;
 
 interface Logger {
   error: (object: Record<string, unknown>, message: string) => void;
@@ -30,7 +29,12 @@ const fastifyMethods = {
 } as const;
 
 export interface Handler {
-  (request: {query: unknown; params: unknown; headers: unknown}): Promise<{
+  (request: {
+    query: unknown;
+    params: unknown;
+    headers: unknown;
+    body: unknown;
+  }): Promise<{
     statusCode: number;
     headers: Record<string, unknown>;
     body: unknown;
@@ -50,7 +54,7 @@ export class FastifyOpenAPI {
         continue;
       }
 
-      if (pathItemObject.$ref) {
+      if (this.isReferenceObject(pathItemObject)) {
         throw new Error('Undereferenced PathItemObject');
       }
 
@@ -83,12 +87,15 @@ export class FastifyOpenAPI {
         }
 
         const dereferencedParameters = operation.parameters?.filter(
-          (parameter): parameter is ParameterObject => {
-            return !('$ref' in parameter);
+          (parameter): parameter is OpenAPIV3.ParameterObject => {
+            return !this.isReferenceObject(parameter);
           }
         );
 
-        if (operation.requestBody && '$ref' in operation.requestBody) {
+        if (
+          operation.requestBody &&
+          this.isReferenceObject(operation.requestBody)
+        ) {
           throw new Error('Undereferenced Request Body Object');
         }
 
@@ -108,7 +115,7 @@ export class FastifyOpenAPI {
   }
 
   private openAPIToFastifyPath(openAPIPath: string): string {
-    return openAPIPath.replace(/\{([^\}]+)\}/g, ':$1');
+    return openAPIPath.replace(/\{([^}]+)\}/g, ':$1');
   }
 
   private createHandler(
@@ -120,6 +127,7 @@ export class FastifyOpenAPI {
         query: request.query,
         params: request.params,
         headers: request.headers,
+        body: request.body,
       });
 
       reply
@@ -129,28 +137,59 @@ export class FastifyOpenAPI {
     };
   }
 
-  private createBodySchema(requestBody?: RequestBodyObject): unknown {
+  private createBodySchema(requestBody?: OpenAPIV3.RequestBodyObject): unknown {
     if (!requestBody) {
       return;
     }
-    return;
+
+    const requestBodySchemas: OpenAPIV3.SchemaObject[] = [];
+
+    for (const mediaTypeObject of Object.values(requestBody.content)) {
+      if (!mediaTypeObject.schema) {
+        continue;
+      }
+
+      if (this.isReferenceObject(mediaTypeObject.schema)) {
+        throw new Error('Undereferenced schema object in request body');
+      }
+
+      requestBodySchemas.push(mediaTypeObject.schema);
+    }
+
+    if (requestBodySchemas.length === 0) {
+      return;
+    }
+
+    if (requestBodySchemas.length === 1) {
+      return requestBodySchemas[0];
+    }
+
+    return {
+      oneOf: requestBodySchemas,
+    };
   }
 
-  private createQuerystringSchema(parameters: ParameterObject[] = []): unknown {
+  private createQuerystringSchema(
+    parameters: OpenAPIV3.ParameterObject[] = []
+  ): unknown {
     return this.createParameterSchemaObject('query', parameters);
   }
 
-  private createParamsSchema(parameters: ParameterObject[] = []): unknown {
+  private createParamsSchema(
+    parameters: OpenAPIV3.ParameterObject[] = []
+  ): unknown {
     return this.createParameterSchemaObject('path', parameters);
   }
 
-  private createHeadersSchema(parameters: ParameterObject[] = []): unknown {
+  private createHeadersSchema(
+    parameters: OpenAPIV3.ParameterObject[] = []
+  ): unknown {
     return this.createParameterSchemaObject('header', parameters);
   }
 
   private createParameterSchemaObject(
     type: 'query' | 'path' | 'header',
-    parameters: ParameterObject[]
+    parameters: OpenAPIV3.ParameterObject[]
   ): unknown {
     const properties: Record<string, unknown> = {};
     const required: string[] = [];
@@ -169,5 +208,11 @@ export class FastifyOpenAPI {
       required: required,
       properties: properties,
     };
+  }
+
+  private isReferenceObject<T>(
+    object: T | OpenAPIV3.ReferenceObject
+  ): object is OpenAPIV3.ReferenceObject {
+    return '$ref' in object;
   }
 }

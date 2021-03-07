@@ -1,6 +1,7 @@
 import {FastifyOpenAPI, Handler} from './index';
 import {openAPIMock} from './__files__/openapi.mock';
 import fastify from 'fastify';
+// eslint-disable-next-line node/no-extraneous-import
 import {Response as LightMyRequestResponse} from 'light-my-request';
 
 const defaultHeaders = {
@@ -38,6 +39,8 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('headerTest', testRoute);
   testHandlers.set('headerRequiredTest', testRoute);
   testHandlers.set('headerArrayTest', testRoute);
+  testHandlers.set('bodyTest', testRoute);
+  testHandlers.set('bodyOneOfTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -92,6 +95,7 @@ describe('A FastifyOpenAPI', () => {
               },
               params: {},
               headers: defaultHeaders,
+              body: null,
             })
           );
         });
@@ -147,6 +151,7 @@ describe('A FastifyOpenAPI', () => {
               },
               params: {},
               headers: defaultHeaders,
+              body: null,
             })
           );
         });
@@ -224,6 +229,7 @@ describe('A FastifyOpenAPI', () => {
               foo: 12345,
             },
             headers: defaultHeaders,
+            body: null,
           })
         );
       });
@@ -271,11 +277,13 @@ describe('A FastifyOpenAPI', () => {
               foo2: 'product',
             },
             headers: defaultHeaders,
+            body: null,
           })
         );
       });
     });
   });
+
   describe('headers', () => {
     describe('valid headers', () => {
       beforeEach(async () => {
@@ -303,6 +311,7 @@ describe('A FastifyOpenAPI', () => {
               storeid: 12345,
               ...defaultHeaders,
             },
+            body: null,
           })
         );
       });
@@ -371,6 +380,109 @@ describe('A FastifyOpenAPI', () => {
 
       it('returns body', () => {
         expect(JSON.parse(response.body)).toEqual({});
+      });
+    });
+  });
+
+  describe('body', () => {
+    describe('valid body', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'POST',
+          url: '/body-test',
+          headers: {
+            'content-type': 'application/json',
+          },
+          payload: {
+            something: 'asdf',
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          query: {},
+          params: {},
+          headers: {
+            ...defaultHeaders,
+            'content-length': '20',
+            'content-type': 'application/json',
+          },
+          body: {
+            something: 'asdf',
+          },
+        });
+      });
+    });
+    describe('valid oneof body option 1', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'POST',
+          url: '/body-test',
+          headers: {
+            'content-type': 'application/json',
+          },
+          payload: {
+            something: 'this is a string',
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          query: {},
+          params: {},
+          headers: {
+            ...defaultHeaders,
+            'content-length': '32',
+            'content-type': 'application/json',
+          },
+          body: {
+            something: 'this is a string',
+          },
+        });
+      });
+    });
+
+    describe('valid oneof body option 2', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'POST',
+          url: '/body-test',
+          headers: {
+            'content-type': 'application/json',
+          },
+          payload: {
+            something2: 12345,
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          query: {},
+          params: {},
+          headers: {
+            ...defaultHeaders,
+            'content-length': '20',
+            'content-type': 'application/json',
+          },
+          body: {
+            something2: 12345,
+          },
+        });
       });
     });
   });

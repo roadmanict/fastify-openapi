@@ -7,14 +7,44 @@ export const openAPIMock: OpenAPIV3.Document = {
     version: '1.0.0',
   },
   paths: {
-    '/query-string-test': {
+    '/status-code-test': {
       get: {
-        operationId: 'queryStringTest',
+        operationId: 'statusCodeTest',
         parameters: [
           {
             in: 'query',
             name: 'foo',
             required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+      },
+    },
+    '/query-string-optional-test': {
+      get: {
+        operationId: 'queryStringOptionalTest',
+        parameters: [
+          {
+            in: 'query',
+            name: 'foo',
+            required: false,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+      },
+    },
+    '/query-string-required-test': {
+      get: {
+        operationId: 'queryStringRequiredTest',
+        parameters: [
+          {
+            in: 'query',
+            name: 'foo',
+            required: true,
             schema: {
               type: 'string',
             },

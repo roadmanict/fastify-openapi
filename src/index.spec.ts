@@ -1,4 +1,4 @@
-import {FastifyOpenAPI} from './index';
+import {FastifyOpenAPI, Handler} from './index';
 import {openAPIMock} from './__files__/openapi.mock';
 import fastify from 'fastify';
 import {Response as LightMyRequestResponse} from 'light-my-request';
@@ -10,16 +10,27 @@ describe('A FastifyOpenAPI', () => {
     error: () => undefined,
   };
   const server = fastify();
-  const testHandlers = new Map();
-  const queryStringResponse = {
-    statusCode: 200,
-    headers: {},
-    body: {
-      something: 'to return',
-    },
-  };
-  testHandlers.set('queryStringTest', () =>
-    Promise.resolve(queryStringResponse)
+  const testHandlers = new Map<string, Handler>();
+  testHandlers.set('statusCodeTest', () =>
+    Promise.resolve({
+      statusCode: 404,
+      headers: {},
+      body: undefined,
+    })
+  );
+  testHandlers.set('queryStringOptionalTest', query =>
+    Promise.resolve({
+      statusCode: 200,
+      headers: {},
+      body: query,
+    })
+  );
+  testHandlers.set('queryStringRequiredTest', query =>
+    Promise.resolve({
+      statusCode: 200,
+      headers: {},
+      body: query,
+    })
   );
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
@@ -37,23 +48,105 @@ describe('A FastifyOpenAPI', () => {
     });
   });
 
-  describe('queryStringTest', () => {
+  describe('statusCodeTest', () => {
     beforeEach(async () => {
       response = await server.inject({
         method: 'GET',
-        url: '/query-string-test',
-        query: {
-          foo: 'bar',
-        },
+        url: '/status-code-test',
       });
     });
 
-    it('returns 200 status', () => {
-      expect(response.statusCode).toEqual(queryStringResponse.statusCode);
+    it('returns 404 status', () => {
+      expect(response.statusCode).toEqual(404);
+    });
+  });
+
+  describe('queryStringOptionalTest', () => {
+    describe('with valid query param', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/query-string-optional-test',
+          query: {
+            foo: 'bar',
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            foo: 'bar',
+          })
+        );
+      });
     });
 
-    it('returns body', () => {
-      expect(response.body).toEqual(JSON.stringify(queryStringResponse.body));
+    // describe('with invalid query param', () => {
+    //   beforeEach(async () => {
+    //     response = await server.inject({
+    //       method: 'GET',
+    //       url: '/query-string-test',
+    //       query: {
+    //         foo: '15',
+    //       },
+    //     });
+    //   });
+    //
+    //   it('returns 400 status', () => {
+    //     expect(response.statusCode).toEqual(400);
+    //   });
+    //
+    //   it('returns error body', () => {
+    //     expect(response.body).toEqual('');
+    //   });
+    // });
+  });
+
+  describe('queryStringRequiredTest', () => {
+    describe('with valid query param', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/query-string-required-test',
+          query: {
+            foo: 'bar',
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            foo: 'bar',
+          })
+        );
+      });
+    });
+
+    describe('with invalid query param', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/query-string-required-test',
+        });
+      });
+
+      it('returns 400 status', () => {
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('returns error body', () => {
+        expect(response.body).toEqual('');
+      });
     });
   });
 });

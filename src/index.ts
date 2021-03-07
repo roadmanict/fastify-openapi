@@ -29,8 +29,12 @@ const fastifyMethods = {
   patch: 'PATCH',
 } as const;
 
-interface Handler {
-  (): Promise<any>;
+export interface Handler {
+  (query: unknown): Promise<{
+    statusCode: number;
+    headers: Record<string, unknown>;
+    body: unknown;
+  }>;
 }
 
 export class FastifyOpenAPI {
@@ -112,9 +116,12 @@ export class FastifyOpenAPI {
     handler: Handler
   ): RouteHandlerMethod {
     return async (request, reply) => {
-      const response = await handler();
+      const response = await handler(request.query);
 
-      return response.body;
+      reply.statusCode = response.statusCode;
+      reply.headers(response.headers);
+
+      reply.send(response.body);
     };
   }
 

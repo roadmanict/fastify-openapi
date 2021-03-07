@@ -30,7 +30,7 @@ const fastifyMethods = {
 } as const;
 
 export interface Handler {
-  (request: {query: unknown}): Promise<{
+  (request: {query: unknown; params: unknown}): Promise<{
     statusCode: number;
     headers: Record<string, unknown>;
     body: unknown;
@@ -118,6 +118,7 @@ export class FastifyOpenAPI {
     return async (request, reply) => {
       const response = await handler({
         query: request.query,
+        params: request.params,
       });
 
       reply

@@ -82,5 +82,19 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
+    '/param-test/:foo': {
+      get: {
+        operationId: 'paramTest',
+        parameters: [
+          {
+            in: 'path',
+            name: 'foo',
+            schema: {
+              type: 'number',
+            },
+          },
+        ],
+      },
+    },
   },
 };

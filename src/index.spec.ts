@@ -28,6 +28,7 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('queryStringRequiredTest', testRoute);
   testHandlers.set('queryStringNumberTest', testRoute);
   testHandlers.set('queryStringArrayTest', testRoute);
+  testHandlers.set('paramTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -80,6 +81,7 @@ describe('A FastifyOpenAPI', () => {
               query: {
                 foo: 'bar',
               },
+              params: {},
             })
           );
         });
@@ -133,6 +135,7 @@ describe('A FastifyOpenAPI', () => {
               query: {
                 foo: 500,
               },
+              params: {},
             })
           );
         });
@@ -185,6 +188,32 @@ describe('A FastifyOpenAPI', () => {
             })
           );
         });
+      });
+    });
+  });
+
+  describe('params', () => {
+    describe('with valid params', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/param-test/12345',
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            query: {},
+            params: {
+              foo: 12345,
+            },
+          })
+        );
       });
     });
   });

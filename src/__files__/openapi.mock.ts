@@ -82,7 +82,7 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
-    '/param-test/:foo': {
+    '/param-test/{foo}': {
       get: {
         operationId: 'paramTest',
         parameters: [
@@ -96,7 +96,7 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
-    '/params-test/:foo/:foo2': {
+    '/params-test/{foo}/{foo2}': {
       get: {
         operationId: 'paramsTest',
         parameters: [

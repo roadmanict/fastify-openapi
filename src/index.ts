@@ -108,7 +108,7 @@ export class FastifyOpenAPI {
   }
 
   private openAPIToFastifyPath(openAPIPath: string): string {
-    return openAPIPath;
+    return openAPIPath.replace(/\{([^\}]+)\}/g, ':$1');
   }
 
   private createHandler(

@@ -229,6 +229,27 @@ describe('A FastifyOpenAPI', () => {
       });
     });
 
+    describe('invalid', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/param-test/asdf',
+        });
+      });
+
+      it('returns 400 status', () => {
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          error: 'Bad Request',
+          message: 'params.foo should be number',
+          statusCode: 400,
+        });
+      });
+    });
+
     describe('double', () => {
       beforeEach(async () => {
         response = await server.inject({

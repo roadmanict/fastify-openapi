@@ -168,6 +168,20 @@ export class FastifyOpenAPI {
   private createQuerystringSchema(
     parameters: OpenAPIV3.ParameterObject[] = []
   ): unknown {
+    for (const parameter of parameters) {
+      if (parameter.in !== 'query') {
+        continue;
+      }
+      if (parameter.explode === false) {
+        throw new Error(
+          'Query parameters config explode=false is not supported'
+        );
+      }
+      if (parameter.style && parameter.style !== 'form') {
+        throw new Error('Query parameters config style=form is only supported');
+      }
+    }
+
     return this.createParameterSchemaObject('query', parameters);
   }
 

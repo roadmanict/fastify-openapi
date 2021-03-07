@@ -15,7 +15,7 @@ describe('A FastifyOpenAPI', () => {
   const loggerMock = {
     error: () => undefined,
   };
-  const server = fastify();
+  const server = fastify({});
   const testHandlers = new Map<string, Handler>();
   testHandlers.set('statusCodeTest', () =>
     Promise.resolve({
@@ -189,12 +189,12 @@ describe('A FastifyOpenAPI', () => {
       });
     });
 
-    describe.skip('queryStringArrayTest', () => {
+    describe('queryStringArrayTest', () => {
       describe('with valid query param', () => {
         beforeEach(async () => {
           response = await server.inject({
             method: 'GET',
-            url: '/query-string-array-test?foo=500,400',
+            url: '/query-string-array-test?foo=500&foo=400',
           });
         });
 
@@ -202,12 +202,15 @@ describe('A FastifyOpenAPI', () => {
           expect(response.statusCode).toEqual(200);
         });
 
-        it('returns body', () => {
-          expect(response.body).toEqual(
-            JSON.stringify({
+        it('Creates correct request context', () => {
+          expect(JSON.parse(response.body)).toEqual({
+            query: {
               foo: [500, 400],
-            })
-          );
+            },
+            params: {},
+            headers: defaultHeaders,
+            body: null,
+          });
         });
       });
     });

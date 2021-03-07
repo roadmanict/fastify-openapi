@@ -3,6 +3,11 @@ import {openAPIMock} from './__files__/openapi.mock';
 import fastify from 'fastify';
 import {Response as LightMyRequestResponse} from 'light-my-request';
 
+const defaultHeaders = {
+  'user-agent': 'lightMyRequest',
+  host: 'localhost:80',
+};
+
 describe('A FastifyOpenAPI', () => {
   let response: LightMyRequestResponse;
 
@@ -30,6 +35,7 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('queryStringArrayTest', testRoute);
   testHandlers.set('paramTest', testRoute);
   testHandlers.set('paramsTest', testRoute);
+  testHandlers.set('headerTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -83,6 +89,7 @@ describe('A FastifyOpenAPI', () => {
                 foo: 'bar',
               },
               params: {},
+              headers: defaultHeaders,
             })
           );
         });
@@ -137,6 +144,7 @@ describe('A FastifyOpenAPI', () => {
                 foo: 500,
               },
               params: {},
+              headers: defaultHeaders,
             })
           );
         });
@@ -213,6 +221,7 @@ describe('A FastifyOpenAPI', () => {
             params: {
               foo: 12345,
             },
+            headers: defaultHeaders,
           })
         );
       });
@@ -238,8 +247,66 @@ describe('A FastifyOpenAPI', () => {
               foo: 12345,
               foo2: 'product',
             },
+            headers: defaultHeaders,
           })
         );
+      });
+    });
+  });
+  describe('headers', () => {
+    describe('valid headers', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/header-test',
+          headers: {
+            requestid: 'requestID',
+            storeid: 12345,
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            query: {},
+            params: {},
+            headers: {
+              requestid: 'requestID',
+              storeid: 12345,
+              ...defaultHeaders,
+            },
+          })
+        );
+      });
+    });
+
+    describe('invalid headers', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/header-test',
+          headers: {
+            requestid: 'requestID',
+            storeid: 'asdf',
+          },
+        });
+      });
+
+      it('returns 400 status', () => {
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          error: 'Bad Request',
+          message: 'headers.storeid should be number',
+          statusCode: 400,
+        });
       });
     });
   });

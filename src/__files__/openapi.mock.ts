@@ -117,5 +117,26 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
+    '/header-test': {
+      get: {
+        operationId: 'headerTest',
+        parameters: [
+          {
+            in: 'header',
+            name: 'requestid',
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            in: 'header',
+            name: 'storeid',
+            schema: {
+              type: 'number',
+            },
+          },
+        ],
+      },
+    },
   },
 };

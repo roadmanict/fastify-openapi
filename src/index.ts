@@ -103,7 +103,7 @@ export class FastifyOpenAPI {
         this.fastify.route({
           method: fastifyMethods[openAPIMethod],
           url: fastifyPath,
-          handler: this.createHandler(operation.operationId, handler),
+          handler: this.createHandler(handler),
           schema: {
             body: this.createBodySchema(operation.requestBody),
             querystring: this.createQuerystringSchema(parameters),
@@ -119,10 +119,7 @@ export class FastifyOpenAPI {
     return openAPIPath.replace(/{([^}]+)}/g, ':$1');
   }
 
-  private createHandler(
-    operationId: string,
-    handler: Handler
-  ): RouteHandlerMethod {
+  private createHandler(handler: Handler): RouteHandlerMethod {
     return async (request, reply) => {
       const response = await handler({
         query: request.query,

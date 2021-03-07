@@ -25,7 +25,7 @@ describe('A FastifyOpenAPI', () => {
       body: query,
     })
   );
-  testHandlers.set('queryStringRequiredTest', query =>
+  testHandlers.set('queryStringNumberTest', query =>
     Promise.resolve({
       statusCode: 200,
       headers: {},
@@ -107,14 +107,14 @@ describe('A FastifyOpenAPI', () => {
     // });
   });
 
-  describe('queryStringRequiredTest', () => {
+  describe('queryStringNumberTest', () => {
     describe('with valid query param', () => {
       beforeEach(async () => {
         response = await server.inject({
           method: 'GET',
-          url: '/query-string-required-test',
+          url: '/query-string-number-test',
           query: {
-            foo: 'bar',
+            foo: '500',
           },
         });
       });
@@ -126,7 +126,7 @@ describe('A FastifyOpenAPI', () => {
       it('returns body', () => {
         expect(response.body).toEqual(
           JSON.stringify({
-            foo: 'bar',
+            foo: 500,
           })
         );
       });
@@ -136,7 +136,10 @@ describe('A FastifyOpenAPI', () => {
       beforeEach(async () => {
         response = await server.inject({
           method: 'GET',
-          url: '/query-string-required-test',
+          url: '/query-string-number-test',
+          query: {
+            foo: 'string',
+          },
         });
       });
 
@@ -145,7 +148,13 @@ describe('A FastifyOpenAPI', () => {
       });
 
       it('returns error body', () => {
-        expect(response.body).toEqual('');
+        expect(response.body).toEqual(
+          JSON.stringify({
+            statusCode: 400,
+            error: 'Bad Request',
+            message: 'querystring.foo should be number',
+          })
+        );
       });
     });
   });

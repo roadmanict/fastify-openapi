@@ -118,10 +118,10 @@ export class FastifyOpenAPI {
     return async (request, reply) => {
       const response = await handler(request.query);
 
-      reply.statusCode = response.statusCode;
-      reply.headers(response.headers);
-
-      reply.send(response.body);
+      reply
+        .code(response.statusCode)
+        .headers(response.headers)
+        .send(response.body);
     };
   }
 

@@ -1,7 +1,7 @@
 // eslint-disable-next-line node/no-unpublished-import
 import type {OpenAPIV3} from 'openapi-types';
 import {FastifyInstance} from 'fastify';
-import {RouteHandlerMethod} from 'fastify/types/route';
+import type {RouteHandlerMethod} from 'fastify/types/route';
 
 interface Logger {
   error: (object: Record<string, unknown>, message: string) => void;
@@ -47,19 +47,20 @@ export class FastifyOpenAPI {
     private readonly fastify: FastifyInstance,
     private readonly handlers: Map<string, Handler>,
     private readonly spec: OpenAPIV3.Document
-  ) {
+  ) {}
+
+  public registerRoutes(): void {
     for (const [path, pathItemObject] of Object.entries(this.spec.paths)) {
       const fastifyPath = this.openAPIToFastifyPath(path);
       if (!pathItemObject) {
         continue;
       }
 
-      if (this.isReferenceObject(pathItemObject)) {
-        throw new Error('Undereferenced PathItemObject');
-      }
+      this.isNotReferenceObject(pathItemObject);
 
       for (const openAPIMethod of openAPIMethods) {
-        const operation = pathItemObject[openAPIMethod];
+        const operation: OpenAPIV3.OperationObject | undefined =
+          pathItemObject[openAPIMethod];
         if (!operation) {
           continue;
         }
@@ -86,17 +87,17 @@ export class FastifyOpenAPI {
           );
         }
 
-        const dereferencedParameters = operation.parameters?.filter(
-          (parameter): parameter is OpenAPIV3.ParameterObject => {
-            return !this.isReferenceObject(parameter);
-          }
-        );
+        const parameters: (
+          | OpenAPIV3.ReferenceObject
+          | OpenAPIV3.ParameterObject
+        )[] = [
+          ...(pathItemObject.parameters ?? []),
+          ...(operation.parameters ?? []),
+        ];
 
-        if (
-          operation.requestBody &&
-          this.isReferenceObject(operation.requestBody)
-        ) {
-          throw new Error('Undereferenced Request Body Object');
+        this.doesNotContainReferenceObjects(parameters);
+        if (operation.requestBody) {
+          this.isNotReferenceObject(operation.requestBody);
         }
 
         this.fastify.route({
@@ -105,9 +106,9 @@ export class FastifyOpenAPI {
           handler: this.createHandler(operation.operationId, handler),
           schema: {
             body: this.createBodySchema(operation.requestBody),
-            querystring: this.createQuerystringSchema(dereferencedParameters),
-            params: this.createParamsSchema(dereferencedParameters),
-            headers: this.createHeadersSchema(dereferencedParameters),
+            querystring: this.createQuerystringSchema(parameters),
+            params: this.createParamsSchema(parameters),
+            headers: this.createHeadersSchema(parameters),
           },
         });
       }
@@ -115,7 +116,7 @@ export class FastifyOpenAPI {
   }
 
   private openAPIToFastifyPath(openAPIPath: string): string {
-    return openAPIPath.replace(/\{([^}]+)\}/g, ':$1');
+    return openAPIPath.replace(/{([^}]+)}/g, ':$1');
   }
 
   private createHandler(
@@ -149,9 +150,7 @@ export class FastifyOpenAPI {
         continue;
       }
 
-      if (this.isReferenceObject(mediaTypeObject.schema)) {
-        throw new Error('Undereferenced schema object in request body');
-      }
+      this.isNotReferenceObject(mediaTypeObject.schema);
 
       requestBodySchemas.push(mediaTypeObject.schema);
     }
@@ -214,5 +213,21 @@ export class FastifyOpenAPI {
     object: T | OpenAPIV3.ReferenceObject
   ): object is OpenAPIV3.ReferenceObject {
     return '$ref' in object;
+  }
+
+  private isNotReferenceObject<T>(
+    obj: T | OpenAPIV3.ReferenceObject
+  ): asserts obj is T {
+    if (this.isReferenceObject(obj)) {
+      throw new Error(`Reference found: ${obj.$ref}, dereference to fix`);
+    }
+  }
+
+  private doesNotContainReferenceObjects<T>(
+    objects: (T | OpenAPIV3.ReferenceObject)[]
+  ): asserts objects is T[] {
+    for (const obj of objects) {
+      this.isNotReferenceObject(obj);
+    }
   }
 }

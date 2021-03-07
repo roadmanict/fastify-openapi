@@ -29,6 +29,7 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('queryStringNumberTest', testRoute);
   testHandlers.set('queryStringArrayTest', testRoute);
   testHandlers.set('paramTest', testRoute);
+  testHandlers.set('paramsTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -193,7 +194,7 @@ describe('A FastifyOpenAPI', () => {
   });
 
   describe('params', () => {
-    describe('with valid params', () => {
+    describe('single', () => {
       beforeEach(async () => {
         response = await server.inject({
           method: 'GET',
@@ -211,6 +212,31 @@ describe('A FastifyOpenAPI', () => {
             query: {},
             params: {
               foo: 12345,
+            },
+          })
+        );
+      });
+    });
+
+    describe('double', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/params-test/12345/product',
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            query: {},
+            params: {
+              foo: 12345,
+              foo2: 'product',
             },
           })
         );

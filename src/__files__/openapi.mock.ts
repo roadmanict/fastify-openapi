@@ -65,5 +65,22 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
+    '/query-string-array-test': {
+      get: {
+        operationId: 'queryStringArrayTest',
+        parameters: [
+          {
+            in: 'query',
+            name: 'foo',
+            schema: {
+              type: 'array',
+              items: {
+                type: 'number',
+              },
+            },
+          },
+        ],
+      },
+    },
   },
 };

@@ -18,27 +18,16 @@ describe('A FastifyOpenAPI', () => {
       body: undefined,
     })
   );
-  testHandlers.set('queryStringOptionalTest', query =>
+  const testRoute = (request: unknown) =>
     Promise.resolve({
       statusCode: 200,
       headers: {},
-      body: query,
-    })
-  );
-  testHandlers.set('queryStringRequiredTest', query =>
-    Promise.resolve({
-      statusCode: 200,
-      headers: {},
-      body: query,
-    })
-  );
-  testHandlers.set('queryStringNumberTest', query =>
-    Promise.resolve({
-      statusCode: 200,
-      headers: {},
-      body: query,
-    })
-  );
+      body: request,
+    });
+  testHandlers.set('queryStringOptionalTest', testRoute);
+  testHandlers.set('queryStringRequiredTest', testRoute);
+  testHandlers.set('queryStringNumberTest', testRoute);
+  testHandlers.set('queryStringArrayTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -87,7 +76,9 @@ describe('A FastifyOpenAPI', () => {
       it('returns body', () => {
         expect(response.body).toEqual(
           JSON.stringify({
-            foo: 'bar',
+            query: {
+              foo: 'bar',
+            },
           })
         );
       });
@@ -138,7 +129,9 @@ describe('A FastifyOpenAPI', () => {
       it('returns body', () => {
         expect(response.body).toEqual(
           JSON.stringify({
-            foo: 500,
+            query: {
+              foo: 500,
+            },
           })
         );
       });
@@ -165,6 +158,29 @@ describe('A FastifyOpenAPI', () => {
             statusCode: 400,
             error: 'Bad Request',
             message: 'querystring.foo should be number',
+          })
+        );
+      });
+    });
+  });
+
+  describe.skip('queryStringArrayTest', () => {
+    describe('with valid query param', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/query-string-array-test?foo=500,400',
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            foo: [500, 400],
           })
         );
       });

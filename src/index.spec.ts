@@ -36,6 +36,8 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('paramTest', testRoute);
   testHandlers.set('paramsTest', testRoute);
   testHandlers.set('headerTest', testRoute);
+  testHandlers.set('headerRequiredTest', testRoute);
+  testHandlers.set('headerArrayTest', testRoute);
 
   new FastifyOpenAPI(loggerMock, server, testHandlers, openAPIMock);
 
@@ -307,6 +309,47 @@ describe('A FastifyOpenAPI', () => {
           message: 'headers.storeid should be number',
           statusCode: 400,
         });
+      });
+    });
+
+    describe('required headers', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/header-required-test',
+        });
+      });
+
+      it('returns 400 status', () => {
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({
+          error: 'Bad Request',
+          message: "headers should have required property 'requestid'",
+          statusCode: 400,
+        });
+      });
+    });
+
+    describe.skip('array headers', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/header-array-test',
+          headers: {
+            'array-header': ['value1', 'value2'],
+          },
+        });
+      });
+
+      it('returns 200 status', () => {
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('returns body', () => {
+        expect(JSON.parse(response.body)).toEqual({});
       });
     });
   });

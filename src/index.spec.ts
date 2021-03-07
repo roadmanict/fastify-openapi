@@ -25,6 +25,13 @@ describe('A FastifyOpenAPI', () => {
       body: query,
     })
   );
+  testHandlers.set('queryStringRequiredTest', query =>
+    Promise.resolve({
+      statusCode: 200,
+      headers: {},
+      body: query,
+    })
+  );
   testHandlers.set('queryStringNumberTest', query =>
     Promise.resolve({
       statusCode: 200,
@@ -85,26 +92,31 @@ describe('A FastifyOpenAPI', () => {
         );
       });
     });
+  });
 
-    // describe('with invalid query param', () => {
-    //   beforeEach(async () => {
-    //     response = await server.inject({
-    //       method: 'GET',
-    //       url: '/query-string-test',
-    //       query: {
-    //         foo: '15',
-    //       },
-    //     });
-    //   });
-    //
-    //   it('returns 400 status', () => {
-    //     expect(response.statusCode).toEqual(400);
-    //   });
-    //
-    //   it('returns error body', () => {
-    //     expect(response.body).toEqual('');
-    //   });
-    // });
+  describe('queryStringRequiredTest', () => {
+    describe('with valid query param', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/query-string-required-test',
+        });
+      });
+
+      it('returns 400 status', () => {
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('returns body', () => {
+        expect(response.body).toEqual(
+          JSON.stringify({
+            statusCode: 400,
+            error: 'Bad Request',
+            message: "querystring should have required property 'foo'",
+          })
+        );
+      });
+    });
   });
 
   describe('queryStringNumberTest', () => {

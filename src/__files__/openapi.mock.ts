@@ -36,6 +36,21 @@ export const openAPIMock: OpenAPIV3.Document = {
         ],
       },
     },
+    '/query-string-required-test': {
+      get: {
+        operationId: 'queryStringRequiredTest',
+        parameters: [
+          {
+            in: 'query',
+            name: 'foo',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+      },
+    },
     '/query-string-number-test': {
       get: {
         operationId: 'queryStringNumberTest',

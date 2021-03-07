@@ -148,12 +148,22 @@ export class FastifyOpenAPI {
     type: 'query' | 'path' | 'header',
     parameters: ParameterObject[]
   ): unknown {
-    return Object.fromEntries(
-      parameters
-        .filter(parameter => parameter.in === type)
-        .map(parameter => {
-          return [parameter.name, parameter.schema];
-        })
-    );
+    const properties: Record<string, unknown> = {};
+    const required: string[] = [];
+
+    parameters
+      .filter(parameter => parameter.in === type)
+      .forEach(parameter => {
+        properties[parameter.name] = parameter.schema;
+        if (parameter.required) {
+          required.push(parameter.name);
+        }
+      });
+
+    return {
+      type: 'object',
+      required: required,
+      properties: properties,
+    };
   }
 }

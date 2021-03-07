@@ -57,132 +57,134 @@ describe('A FastifyOpenAPI', () => {
     });
   });
 
-  describe('queryStringOptionalTest', () => {
-    describe('with valid query param', () => {
-      beforeEach(async () => {
-        response = await server.inject({
-          method: 'GET',
-          url: '/query-string-optional-test',
-          query: {
-            foo: 'bar',
-          },
-        });
-      });
-
-      it('returns 200 status', () => {
-        expect(response.statusCode).toEqual(200);
-      });
-
-      it('returns body', () => {
-        expect(response.body).toEqual(
-          JSON.stringify({
+  describe('queryString', () => {
+    describe('queryStringOptionalTest', () => {
+      describe('with valid query param', () => {
+        beforeEach(async () => {
+          response = await server.inject({
+            method: 'GET',
+            url: '/query-string-optional-test',
             query: {
               foo: 'bar',
             },
-          })
-        );
-      });
-    });
-  });
+          });
+        });
 
-  describe('queryStringRequiredTest', () => {
-    describe('with valid query param', () => {
-      beforeEach(async () => {
-        response = await server.inject({
-          method: 'GET',
-          url: '/query-string-required-test',
+        it('returns 200 status', () => {
+          expect(response.statusCode).toEqual(200);
+        });
+
+        it('returns body', () => {
+          expect(response.body).toEqual(
+            JSON.stringify({
+              query: {
+                foo: 'bar',
+              },
+            })
+          );
         });
       });
-
-      it('returns 400 status', () => {
-        expect(response.statusCode).toEqual(400);
-      });
-
-      it('returns body', () => {
-        expect(response.body).toEqual(
-          JSON.stringify({
-            statusCode: 400,
-            error: 'Bad Request',
-            message: "querystring should have required property 'foo'",
-          })
-        );
-      });
     });
-  });
 
-  describe('queryStringNumberTest', () => {
-    describe('with valid query param', () => {
-      beforeEach(async () => {
-        response = await server.inject({
-          method: 'GET',
-          url: '/query-string-number-test',
-          query: {
-            foo: '500',
-          },
+    describe('queryStringRequiredTest', () => {
+      describe('with valid query param', () => {
+        beforeEach(async () => {
+          response = await server.inject({
+            method: 'GET',
+            url: '/query-string-required-test',
+          });
+        });
+
+        it('returns 400 status', () => {
+          expect(response.statusCode).toEqual(400);
+        });
+
+        it('returns body', () => {
+          expect(response.body).toEqual(
+            JSON.stringify({
+              statusCode: 400,
+              error: 'Bad Request',
+              message: "querystring should have required property 'foo'",
+            })
+          );
         });
       });
+    });
 
-      it('returns 200 status', () => {
-        expect(response.statusCode).toEqual(200);
-      });
-
-      it('returns body', () => {
-        expect(response.body).toEqual(
-          JSON.stringify({
+    describe('queryStringNumberTest', () => {
+      describe('with valid query param', () => {
+        beforeEach(async () => {
+          response = await server.inject({
+            method: 'GET',
+            url: '/query-string-number-test',
             query: {
-              foo: 500,
+              foo: '500',
             },
-          })
-        );
-      });
-    });
+          });
+        });
 
-    describe('with invalid query param', () => {
-      beforeEach(async () => {
-        response = await server.inject({
-          method: 'GET',
-          url: '/query-string-number-test',
-          query: {
-            foo: 'string',
-          },
+        it('returns 200 status', () => {
+          expect(response.statusCode).toEqual(200);
+        });
+
+        it('returns body', () => {
+          expect(response.body).toEqual(
+            JSON.stringify({
+              query: {
+                foo: 500,
+              },
+            })
+          );
         });
       });
 
-      it('returns 400 status', () => {
-        expect(response.statusCode).toEqual(400);
-      });
+      describe('with invalid query param', () => {
+        beforeEach(async () => {
+          response = await server.inject({
+            method: 'GET',
+            url: '/query-string-number-test',
+            query: {
+              foo: 'string',
+            },
+          });
+        });
 
-      it('returns error body', () => {
-        expect(response.body).toEqual(
-          JSON.stringify({
-            statusCode: 400,
-            error: 'Bad Request',
-            message: 'querystring.foo should be number',
-          })
-        );
-      });
-    });
-  });
+        it('returns 400 status', () => {
+          expect(response.statusCode).toEqual(400);
+        });
 
-  describe.skip('queryStringArrayTest', () => {
-    describe('with valid query param', () => {
-      beforeEach(async () => {
-        response = await server.inject({
-          method: 'GET',
-          url: '/query-string-array-test?foo=500,400',
+        it('returns error body', () => {
+          expect(response.body).toEqual(
+            JSON.stringify({
+              statusCode: 400,
+              error: 'Bad Request',
+              message: 'querystring.foo should be number',
+            })
+          );
         });
       });
+    });
 
-      it('returns 200 status', () => {
-        expect(response.statusCode).toEqual(200);
-      });
+    describe.skip('queryStringArrayTest', () => {
+      describe('with valid query param', () => {
+        beforeEach(async () => {
+          response = await server.inject({
+            method: 'GET',
+            url: '/query-string-array-test?foo=500,400',
+          });
+        });
 
-      it('returns body', () => {
-        expect(response.body).toEqual(
-          JSON.stringify({
-            foo: [500, 400],
-          })
-        );
+        it('returns 200 status', () => {
+          expect(response.statusCode).toEqual(200);
+        });
+
+        it('returns body', () => {
+          expect(response.body).toEqual(
+            JSON.stringify({
+              foo: [500, 400],
+            })
+          );
+        });
       });
     });
   });

@@ -30,6 +30,15 @@ describe('A FastifyOpenAPI', () => {
       headers: {},
       body: request,
     });
+  testHandlers.set('thrownErrorTest', () => {
+    throw new Error();
+  });
+  testHandlers.set('thrownErrorAsyncTest', async () => {
+    throw new Error();
+  });
+  testHandlers.set('promiseRejectTest', () => {
+    return Promise.reject(new Error());
+  });
   testHandlers.set('queryStringOptionalTest', testRoute);
   testHandlers.set('queryStringRequiredTest', testRoute);
   testHandlers.set('queryStringNumberTest', testRoute);
@@ -49,29 +58,70 @@ describe('A FastifyOpenAPI', () => {
     openAPIMock
   ).registerRoutes();
 
-  describe('404 test', () => {
-    beforeEach(async () => {
-      response = await server.inject({
-        method: 'GET',
-        url: '/does-not-exist',
+  describe('Misc', () => {
+    describe('404 test', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/does-not-exist',
+        });
+      });
+
+      it('returns 404 status', () => {
+        expect(response.statusCode).toEqual(404);
       });
     });
 
-    it('returns 404 status', () => {
-      expect(response.statusCode).toEqual(404);
-    });
-  });
+    describe('throw error test', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/thrown-error-test',
+        });
+      });
 
-  describe('statusCodeTest', () => {
-    beforeEach(async () => {
-      response = await server.inject({
-        method: 'GET',
-        url: '/status-code-test',
+      it('returns 500 status', () => {
+        expect(response.statusCode).toEqual(500);
       });
     });
 
-    it('returns 404 status', () => {
-      expect(response.statusCode).toEqual(404);
+    describe('throw error async test', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/thrown-error-async-test',
+        });
+      });
+
+      it('returns 500 status', () => {
+        expect(response.statusCode).toEqual(500);
+      });
+    });
+
+    describe('promise reject test', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/promise-reject-test',
+        });
+      });
+
+      it('returns 500 status', () => {
+        expect(response.statusCode).toEqual(500);
+      });
+    });
+
+    describe('statusCodeTest', () => {
+      beforeEach(async () => {
+        response = await server.inject({
+          method: 'GET',
+          url: '/status-code-test',
+        });
+      });
+
+      it('returns 404 status', () => {
+        expect(response.statusCode).toEqual(404);
+      });
     });
   });
 

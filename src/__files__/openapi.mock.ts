@@ -11,16 +11,21 @@ export const openAPIMock: OpenAPIV3.Document = {
     '/status-code-test': {
       get: {
         operationId: 'statusCodeTest',
-        parameters: [
-          {
-            in: 'query',
-            name: 'foo',
-            required: false,
-            schema: {
-              type: 'string',
-            },
-          },
-        ],
+      },
+    },
+    '/thrown-error-test': {
+      get: {
+        operationId: 'thrownErrorTest',
+      },
+    },
+    '/thrown-error-async-test': {
+      get: {
+        operationId: 'thrownErrorAsyncTest',
+      },
+    },
+    '/promise-reject-test': {
+      get: {
+        operationId: 'promiseRejectTest',
       },
     },
     '/query-string-optional-test': {

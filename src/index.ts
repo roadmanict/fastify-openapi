@@ -1,6 +1,5 @@
-// eslint-disable-next-line node/no-unpublished-import
 import type {OpenAPIV3} from 'openapi-types';
-import {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
+import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
 import type {RouteHandlerMethod} from 'fastify/types/route';
 
 const openAPIMethods = [

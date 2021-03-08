@@ -1,7 +1,6 @@
 import {FastifyOpenAPI, Handler} from './index';
 import {openAPIMock} from './__files__/openapi.mock';
 import fastify from 'fastify';
-// eslint-disable-next-line node/no-extraneous-import
 import {Response as LightMyRequestResponse} from 'light-my-request';
 
 const defaultHeaders = {

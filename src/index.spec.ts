@@ -50,7 +50,7 @@ describe('A FastifyOpenAPI', () => {
 
   new FastifyOpenAPI(server, testHandlers, openAPIMock).registerRoutes();
 
-  describe('Misc', () => {
+  describe('Error handling', () => {
     describe('404 test', () => {
       beforeEach(async () => {
         response = await server.inject({

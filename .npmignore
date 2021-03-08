@@ -1,0 +1,4 @@
+**
+!build/**/*{.js,.d.ts}
+build/**/*.{spec,test}{.js,.d.ts}
+build/**/__files__/**/*

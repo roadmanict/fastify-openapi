@@ -1,6 +1,6 @@
 // eslint-disable-next-line node/no-unpublished-import
 import type {OpenAPIV3} from 'openapi-types';
-import {FastifyInstance} from 'fastify';
+import {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
 import type {RouteHandlerMethod} from 'fastify/types/route';
 
 const openAPIMethods = [
@@ -25,12 +25,18 @@ const fastifyMethods = {
 } as const;
 
 export interface Handler {
-  (request: {
-    query: unknown;
-    params: unknown;
-    headers: unknown;
-    body: unknown;
-  }): Promise<{
+  (
+    request: {
+      query: unknown;
+      params: unknown;
+      headers: unknown;
+      body: unknown;
+    },
+    fastify: {
+      request: FastifyRequest;
+      reply: FastifyReply;
+    }
+  ): Promise<{
     statusCode: number;
     headers: Record<string, unknown>;
     body: unknown;
@@ -111,12 +117,15 @@ export class FastifyOpenAPI {
 
   private createHandler(handler: Handler): RouteHandlerMethod {
     return async (request, reply) => {
-      const response = await handler({
-        query: request.query,
-        params: request.params,
-        headers: request.headers,
-        body: request.body,
-      });
+      const response = await handler(
+        {
+          query: request.query,
+          params: request.params,
+          headers: request.headers,
+          body: request.body,
+        },
+        {request, reply}
+      );
 
       reply
         .code(response.statusCode)

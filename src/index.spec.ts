@@ -12,9 +12,6 @@ const defaultHeaders = {
 describe('A FastifyOpenAPI', () => {
   let response: LightMyRequestResponse;
 
-  const loggerMock = {
-    error: () => undefined,
-  };
   const server = fastify({});
   const testHandlers = new Map<string, Handler>();
   testHandlers.set('statusCodeTest', () =>
@@ -51,12 +48,7 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('bodyTest', testRoute);
   testHandlers.set('bodyOneOfTest', testRoute);
 
-  new FastifyOpenAPI(
-    loggerMock,
-    server,
-    testHandlers,
-    openAPIMock
-  ).registerRoutes();
+  new FastifyOpenAPI(server, testHandlers, openAPIMock).registerRoutes();
 
   describe('Misc', () => {
     describe('404 test', () => {

@@ -3,10 +3,6 @@ import type {OpenAPIV3} from 'openapi-types';
 import {FastifyInstance} from 'fastify';
 import type {RouteHandlerMethod} from 'fastify/types/route';
 
-interface Logger {
-  error: (object: Record<string, unknown>, message: string) => void;
-}
-
 const openAPIMethods = [
   'get',
   'put',
@@ -43,7 +39,6 @@ export interface Handler {
 
 export class FastifyOpenAPI {
   public constructor(
-    private readonly logger: Logger,
     private readonly fastify: FastifyInstance,
     private readonly handlers: Map<string, Handler>,
     private readonly spec: OpenAPIV3.Document
@@ -66,18 +61,13 @@ export class FastifyOpenAPI {
         }
 
         if (openAPIMethod === 'trace' || openAPIMethod === 'head') {
-          throw new Error('Unsupported request method');
+          throw new Error(`Unsupported request method: ${openAPIMethod}`);
         }
 
         if (!operation.operationId) {
-          this.logger.error(
-            {
-              operation: operation,
-            },
-            'Operation without operationId'
+          throw new Error(
+            `Operation without operationId: ${path} ${openAPIMethod}`
           );
-
-          continue;
         }
 
         const handler = this.handlers.get(operation.operationId);

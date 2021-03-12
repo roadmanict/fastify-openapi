@@ -48,7 +48,10 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('bodyTest', testRoute);
   testHandlers.set('bodyOneOfTest', testRoute);
 
-  new OpenAPIRestFramework(openAPIMock, new FastifyOpenAPI(server, testHandlers)).registerRoutes();
+  new OpenAPIRestFramework(
+    openAPIMock,
+    new FastifyOpenAPI(server, testHandlers)
+  ).registerRoutes();
 
   describe('Error handling', () => {
     describe('404 test', () => {

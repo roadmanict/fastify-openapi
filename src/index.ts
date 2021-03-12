@@ -11,16 +11,26 @@ enum OpenAPIMethod {
   Trace = 'trace',
 }
 
-export interface RestFrameworkRouteOptions { operationID: string, method: OpenAPIMethod, path: string, schema: { body?: unknown, querystring?: unknown, params?: unknown, headers?: unknown } }
+export interface RestFrameworkRouteOptions {
+  operationID: string;
+  method: OpenAPIMethod;
+  path: string;
+  schema: {
+    body?: unknown;
+    querystring?: unknown;
+    params?: unknown;
+    headers?: unknown;
+  };
+}
 
 export interface RestFramework {
-  registerRoute(options: RestFrameworkRouteOptions): void
+  registerRoute(options: RestFrameworkRouteOptions): void;
 }
 
 export class OpenAPIRestFramework {
   public constructor(
     private readonly spec: OpenAPIV3.Document,
-    private readonly restFramework: RestFramework,
+    private readonly restFramework: RestFramework
   ) {}
 
   public registerRoutes(): void {
@@ -67,7 +77,7 @@ export class OpenAPIRestFramework {
             params: this.createParamsSchema(parameters),
             headers: this.createHeadersSchema(parameters),
           },
-        })
+        });
       }
     }
   }

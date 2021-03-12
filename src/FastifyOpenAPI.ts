@@ -1,4 +1,9 @@
-import {FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod} from 'fastify';
+import {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  RouteHandlerMethod,
+} from 'fastify';
 import {RestFramework, RestFrameworkRouteOptions} from './index';
 
 const fastifyMethods = {
@@ -33,14 +38,18 @@ export interface Handler {
 export class FastifyOpenAPI implements RestFramework {
   public constructor(
     private readonly fastify: FastifyInstance,
-    private readonly handlers: Map<string, Handler>,
-  ) {
-  }
+    private readonly handlers: Map<string, Handler>
+  ) {}
 
-  public registerRoute({operationID, method, path, schema}: RestFrameworkRouteOptions): void {
+  public registerRoute({
+    operationID,
+    method,
+    path,
+    schema,
+  }: RestFrameworkRouteOptions): void {
     const handler = this.handlers.get(operationID);
     if (!handler) {
-      throw new Error(`Handler for operationID ${operationID} not found`)
+      throw new Error(`Handler for operationID ${operationID} not found`);
     }
 
     if (method === 'trace' || method === 'head') {
@@ -62,19 +71,19 @@ export class FastifyOpenAPI implements RestFramework {
   private createHandler(handler: Handler): RouteHandlerMethod {
     return async (request, reply) => {
       const response = await handler(
-          {
-            query: request.query,
-            params: request.params,
-            headers: request.headers,
-            body: request.body,
-          },
-          {request, reply}
+        {
+          query: request.query,
+          params: request.params,
+          headers: request.headers,
+          body: request.body,
+        },
+        {request, reply}
       );
 
       reply
-          .code(response.statusCode)
-          .headers(response.headers)
-          .send(response.body);
+        .code(response.statusCode)
+        .headers(response.headers)
+        .send(response.body);
     };
   }
 }

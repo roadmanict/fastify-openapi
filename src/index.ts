@@ -1,84 +1,46 @@
 import type {OpenAPIV3} from 'openapi-types';
-import type {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
-import type {RouteHandlerMethod} from 'fastify/types/route';
 
-const openAPIMethods = [
-  'get',
-  'put',
-  'post',
-  'delete',
-  'options',
-  'head',
-  'patch',
-  'trace',
-] as const;
-
-const fastifyMethods = {
-  get: 'GET',
-  put: 'PUT',
-  post: 'POST',
-  delete: 'DELETE',
-  options: 'OPTIONS',
-  head: 'HEAD',
-  patch: 'PATCH',
-} as const;
-
-export interface Handler {
-  (
-    request: {
-      query: unknown;
-      params: unknown;
-      headers: unknown;
-      body: unknown;
-    },
-    fastify: {
-      request: FastifyRequest;
-      reply: FastifyReply;
-    }
-  ): Promise<{
-    statusCode: number;
-    headers: Record<string, unknown>;
-    body: unknown;
-  }>;
+enum OpenAPIMethod {
+  Get = 'get',
+  Put = 'put',
+  Post = 'post',
+  Delete = 'delete',
+  Options = 'options',
+  Head = 'head',
+  Patch = 'patch',
+  Trace = 'trace',
 }
 
-export class FastifyOpenAPI {
+export interface RestFrameworkRouteOptions { operationID: string, method: OpenAPIMethod, path: string, schema: { body?: unknown, querystring?: unknown, params?: unknown, headers?: unknown } }
+
+export interface RestFramework {
+  registerRoute(options: RestFrameworkRouteOptions): void
+}
+
+export class OpenAPIRestFramework {
   public constructor(
-    private readonly fastify: FastifyInstance,
-    private readonly handlers: Map<string, Handler>,
-    private readonly spec: OpenAPIV3.Document
+    private readonly spec: OpenAPIV3.Document,
+    private readonly restFramework: RestFramework,
   ) {}
 
   public registerRoutes(): void {
     for (const [path, pathItemObject] of Object.entries(this.spec.paths)) {
-      const fastifyPath = this.openAPIToFastifyPath(path);
       if (!pathItemObject) {
         continue;
       }
 
       this.isNotReferenceObject(pathItemObject);
 
-      for (const openAPIMethod of openAPIMethods) {
+      for (const openAPIMethod of Object.values(OpenAPIMethod)) {
         const operation: OpenAPIV3.OperationObject | undefined =
           pathItemObject[openAPIMethod];
         if (!operation) {
           continue;
         }
 
-        if (openAPIMethod === 'trace' || openAPIMethod === 'head') {
-          throw new Error(`Unsupported request method: ${openAPIMethod}`);
-        }
-
         if (!operation.operationId) {
           throw new Error(
             `Operation without operationId: ${path} ${openAPIMethod}`
-          );
-        }
-
-        const handler = this.handlers.get(operation.operationId);
-        if (!handler) {
-          throw new Error(
-            `Handler missing for operationId: ${operation.operationId}`
           );
         }
 
@@ -95,42 +57,19 @@ export class FastifyOpenAPI {
           this.isNotReferenceObject(operation.requestBody);
         }
 
-        this.fastify.route({
-          method: fastifyMethods[openAPIMethod],
-          url: fastifyPath,
-          handler: this.createHandler(handler),
+        this.restFramework.registerRoute({
+          operationID: operation.operationId,
+          method: openAPIMethod,
+          path: path,
           schema: {
             body: this.createBodySchema(operation.requestBody),
             querystring: this.createQuerystringSchema(parameters),
             params: this.createParamsSchema(parameters),
             headers: this.createHeadersSchema(parameters),
           },
-        });
+        })
       }
     }
-  }
-
-  private openAPIToFastifyPath(openAPIPath: string): string {
-    return openAPIPath.replace(/{([^}]+)}/g, ':$1');
-  }
-
-  private createHandler(handler: Handler): RouteHandlerMethod {
-    return async (request, reply) => {
-      const response = await handler(
-        {
-          query: request.query,
-          params: request.params,
-          headers: request.headers,
-          body: request.body,
-        },
-        {request, reply}
-      );
-
-      reply
-        .code(response.statusCode)
-        .headers(response.headers)
-        .send(response.body);
-    };
   }
 
   private createBodySchema(requestBody?: OpenAPIV3.RequestBodyObject): unknown {

@@ -1,7 +1,8 @@
-import {FastifyOpenAPI, Handler} from './index';
+import {FastifyOpenAPI, Handler} from './FastifyOpenAPI';
 import {openAPIMock} from './__files__/openapi.mock';
 import fastify from 'fastify';
 import {Response as LightMyRequestResponse} from 'light-my-request';
+import {OpenAPIRestFramework} from './index';
 
 const defaultHeaders = {
   'user-agent': 'lightMyRequest',
@@ -47,7 +48,7 @@ describe('A FastifyOpenAPI', () => {
   testHandlers.set('bodyTest', testRoute);
   testHandlers.set('bodyOneOfTest', testRoute);
 
-  new FastifyOpenAPI(server, testHandlers, openAPIMock).registerRoutes();
+  new OpenAPIRestFramework(openAPIMock, new FastifyOpenAPI(server, testHandlers)).registerRoutes();
 
   describe('Error handling', () => {
     describe('404 test', () => {

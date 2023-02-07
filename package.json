@@ -21,7 +21,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^26.0.20",
-    "@types/node": "^14.11.2",
+    "@types/node": "^18.13.0",
     "gts": "^3.1.0",
     "jest": "^26.6.3",
     "openapi-types": "^7.2.3",
